@@ -20,7 +20,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please add a password"],
       minlength: 6,
-      select: false, // Don't return password by default
+      select: false,
+    },
+    role: {
+      type: String,
+      enum: ["student", "admin"],
+      default: "student",
+    },
+    contactNumber: {
+      type: String,
     },
   },
   {
