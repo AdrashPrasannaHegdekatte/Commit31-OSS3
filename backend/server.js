@@ -8,6 +8,11 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Ensure correct client IP detection when behind reverse proxies
+if (process.env.TRUST_PROXY_HOPS) {
+  app.set("trust proxy", Number(process.env.TRUST_PROXY_HOPS));
+}
+
 /* ---------------- SECURITY MIDDLEWARE ---------------- */
 
 // Helmet (secure HTTP headers)

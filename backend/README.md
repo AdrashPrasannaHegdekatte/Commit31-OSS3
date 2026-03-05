@@ -8,7 +8,7 @@ This directory contains the backend codebase for the application, built with **N
 
 The backend follows a standard **MVC (Model–View–Controller)** architecture.
 
-```
+```text
 backend/
 ├── config/           # Configuration files (e.g., database connection)
 │   └── db.js         # MongoDB connection setup
@@ -42,13 +42,13 @@ Make sure the following tools are installed:
 
 Navigate to the backend directory:
 
-```
+```bash
 cd backend
 ```
 
 Install dependencies:
 
-```
+```bash
 npm install
 ```
 
@@ -60,7 +60,7 @@ Create a `.env` file in the backend directory.
 
 Example:
 
-```
+```env
 PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/uni_find
 CORS_ORIGIN=http://localhost:3000
@@ -74,7 +74,7 @@ CORS_ORIGIN=http://localhost:3000
 
 Multiple origins can be specified using commas:
 
-```
+```env
 CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:3000
 ```
 
@@ -84,19 +84,19 @@ CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:3000
 
 Start the server in development mode:
 
-```
+```bash
 npm run dev
 ```
 
 Or run normally:
 
-```
+```bash
 npm start
 ```
 
 The backend will start at:
 
-```
+```text
 http://localhost:5000
 ```
 
@@ -108,7 +108,7 @@ http://localhost:5000
 
 Base URL:
 
-```
+```text
 /api/auth
 ```
 
@@ -116,7 +116,7 @@ Base URL:
 
 **Endpoint**
 
-```
+```http
 POST /api/auth/register
 ```
 
@@ -136,7 +136,7 @@ Registers a new user in the system.
 
 **Response**
 
-```
+```text
 201 Created
 ```
 
@@ -148,7 +148,7 @@ Returns the newly created user and a success message.
 
 **Endpoint**
 
-```
+```http
 POST /api/auth/login
 ```
 
@@ -167,7 +167,7 @@ Authenticates a user using email and password.
 
 **Response**
 
-```
+```text
 200 OK
 ```
 
@@ -179,7 +179,7 @@ Returns user information and login confirmation.
 
 Base URL:
 
-```
+```text
 /api/users
 ```
 
@@ -187,7 +187,7 @@ Base URL:
 
 **Endpoint**
 
-```
+```http
 GET /api/users/me
 ```
 
@@ -223,9 +223,7 @@ Helmet helps protect the application from attacks such as:
 
 Helmet is applied globally in `server.js`.
 
-Example:
-
-```
+```javascript
 app.use(helmet());
 ```
 
@@ -241,7 +239,7 @@ Instead of allowing all origins, the backend allows only specific origins define
 
 Example configuration in `server.js`:
 
-```
+```javascript
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",")
   : ["http://localhost:3000"];
@@ -266,13 +264,13 @@ Rate limiting restricts how many requests a user can send within a certain time 
 
 Applied to:
 
-```
+```text
 POST /api/auth/login
 ```
 
 Example configuration:
 
-```
+```javascript
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -298,7 +296,7 @@ If the limit is exceeded, the API returns:
 
 with status code:
 
-```
+```text
 429 Too Many Requests
 ```
 
