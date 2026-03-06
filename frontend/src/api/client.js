@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const rawBaseUrl = import.meta.env.VITE_API_URL;
 
 if (!rawBaseUrl) {
@@ -7,13 +9,12 @@ if (!rawBaseUrl) {
 const BASE_URL = rawBaseUrl.replace(/\/+$/, "");
 
 /**
- * Default token provider (reads from localStorage)
+ * Default token provider (fallback to localStorage)
  */
 let tokenProvider = () => localStorage.getItem("token");
 
 /**
- * Allow AuthContext or other parts of the app
- * to provide a token dynamically.
+ * Allow AuthContext to provide token dynamically
  */
 export function setTokenProvider(provider) {
   tokenProvider =
@@ -22,82 +23,53 @@ export function setTokenProvider(provider) {
       : () => localStorage.getItem("token");
 }
 
-async function request(endpoint, options = {}) {
-  const { token: tokenOverride, ...fetchOptions } = options;
+const apiClient = axios.create({
+  baseURL: BASE_URL,
+});
 
-  const token = tokenOverride || tokenProvider();
-
-  const headers = {
-    ...fetchOptions.headers,
-  };
-
-  if (fetchOptions.body) {
-    headers["Content-Type"] = "application/json";
-  }
+/**
+ * Attach Authorization header automatically
+ */
+apiClient.interceptors.request.use((config) => {
+  const token = tokenProvider();
 
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // Validate endpoint
-  if (typeof endpoint !== "string" || endpoint.trim() === "") {
-    throw new Error("Endpoint must be a non-empty string");
+  return config;
+});
+
+/**
+ * Normalize API errors
+ */
+apiClient.interceptors.response.use(
+  (response) => response.data,
+  (error) => {
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "API request failed";
+
+    return Promise.reject(new Error(message));
   }
-
-  const normalizedEndpoint = endpoint.startsWith("/")
-    ? endpoint
-    : `/${endpoint}`;
-
-  let response;
-
-  try {
-    response = await fetch(`${BASE_URL}${normalizedEndpoint}`, {
-      ...fetchOptions,
-      headers,
-    });
-  } catch (err) {
-    throw new Error(err.message || "Network request failed");
-  }
-
-  let data = null;
-
-  try {
-    data = await response.json();
-  } catch {
-    data = null;
-  }
-
-  if (!response.ok) {
-    const message = data?.message || "API request failed";
-    throw new Error(message);
-  }
-
-  return data;
-}
+);
 
 const api = {
-  get(endpoint, options = {}) {
-    return request(endpoint, { ...options, method: "GET" });
+  get(endpoint, config = {}) {
+    return apiClient.get(endpoint, config);
   },
 
-  post(endpoint, body, options = {}) {
-    return request(endpoint, {
-      ...options,
-      method: "POST",
-      body: JSON.stringify(body),
-    });
+  post(endpoint, body, config = {}) {
+    return apiClient.post(endpoint, body, config);
   },
 
-  put(endpoint, body, options = {}) {
-    return request(endpoint, {
-      ...options,
-      method: "PUT",
-      body: JSON.stringify(body),
-    });
+  put(endpoint, body, config = {}) {
+    return apiClient.put(endpoint, body, config);
   },
 
-  delete(endpoint, options = {}) {
-    return request(endpoint, { ...options, method: "DELETE" });
+  delete(endpoint, config = {}) {
+    return apiClient.delete(endpoint, config);
   },
 };
 
