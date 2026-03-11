@@ -3,31 +3,38 @@ services:
   mongo:
     image: mongo:7
     container_name: commit31_mongo_prod
-    ports:
-      - "27017:27017"
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   backend:
     container_name: commit31_backend_prod
     build:
       context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
     environment:
       - NODE_ENV=production
       - MONGO_URI=mongodb://mongo:27017/commit31
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     restart: unless-stopped
 
   frontend:
     container_name: commit31_frontend_prod
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "80:8080"
     depends_on:
       - backend
     restart: unless-stopped
